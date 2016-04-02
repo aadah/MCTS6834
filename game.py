@@ -1,10 +1,12 @@
 import math
+import copy
 
 
 class Board(object):
     """
     This class represents an instantaneous board
-    state of a game in progress.
+    state of a game in progress. Should be able
+    to be copied to keep track of board histories.
     """
 
     def __init__(self):
@@ -23,7 +25,62 @@ class Board(object):
         Returns True if the state of the board
         is that of a finished game, False otherwise.
         """
+
         raise NotImplemented
+
+    def __copy__(self):
+        raise NotImplemented
+
+
+class ConnectFourBoard(Board):
+    """
+    This class represents a Connect Four board.
+    Locations are accessed via a 0-indexed coordinate system.
+    Coordinate (x,y) means row y of column x.
+    Bottom row is row 0.
+    Being a two-player game, we have Red and Black
+    moves, represented as R and B respectively.
+    The symbol '-' means no piece is at that coordinate.
+    """
+    RED = 'R'
+    BLACK = 'B'
+    EMPTY = '-'
+    NUM_COLS = 6
+    NUM_ROWS = 7
+
+    def __init__(self, state=None, turn=None):
+        """
+        params:
+        state - the board state represented as nested lists
+        turn - which color is to play next. either RED or BLACK
+        """
+
+        if state is None:
+            self.state = [[EMPTY for j in xrange(NUM_COLS)] for i in xrange(NUM_ROWS)]
+            self.turn = RED
+        else:
+            self.state = state
+            self.turn = turn
+        
+    def get_legal_actions(self):
+        actions = set()
+        
+        for col in xrange(len(self.state)):
+            column = self.state[col]
+            for row in xrange(len(column)):
+                if column[row] == EMPTY:
+                    action.add(ConnectFourAction(self.turn, col, row))
+                    break
+
+        return actions
+
+    def is_terminal(self):
+        pass
+
+    def __copy__(self):
+        new_state = copy.deepcopy(self.state)
+        
+        return ConnectFourBoard(new_state, self.turn)
 
 
 class Action(object):
@@ -45,16 +102,48 @@ class Action(object):
         Throws an error if action cannot be applied.
         """
 
-        # You may find the following code snippet useful when
-        # implementing custom actions:
-        #legal_actions = board.get_legal_actions()
-        #if self not in legal_actions:
-        #    raise Exception("This action is not allowed!")
-
         raise NotImplemented
         
     def __hash__(self):
         raise NotImplemented
+
+
+class ConnectFourAction(Action):
+    """
+    This board represents an action in Connect Four.
+    The actions specifies the color of the piece
+    and the coordinate of where to place it.
+    """
+
+    def __init__(self, color, col, row):
+        """
+        params:
+        color - a string from ['R', 'B'] that represents the color of the piece
+        col - integer for the column
+        row - integer for the row
+        """
+
+        self.color = color
+        self.col = col
+        self.row = row
+
+    def apply(board):
+        legal_actions = board.get_legal_actions()
+        if self not in legal_actions:
+            raise Exception("This action is not allowed!")
+            
+        new_board = copy.copy(board)
+        new_board.state[self.col][self.row] = self.color
+
+        if self.color == ConnectFourBoard.RED:
+            new_board.turn = ConnectFourBoard.BLACK
+        else:
+            new_board.turn = ConnectFourBoard.RED
+
+        return board
+
+    def __hash__(self):
+        return hash((self.color, self.col, self.row))
 
 
 class Player(object):
@@ -157,6 +246,13 @@ class Node(object):
         
         return self.children
 
+    def add_child(self, child):
+        """
+        Adds a new child node to the nodes visited children.
+        """
+
+        self.children.append(child)
+
     def get_num_visits(self):
         """
         Return number of time this node has been visited.
@@ -177,6 +273,19 @@ class Node(object):
         """
 
         self.num_visits += 1
+
+    def is_fully_expanded(self):
+        """
+        Returns True if the node has
+        all possible children in self.children,
+        False otherwise.
+        """
+        
+        possible_actions = self.board.get_legal_actions()
+        taken_actions = set([child.action for child in self.children])
+        untaken_actions = possible_actions ^ taken_actions
+        
+        return len(untaken_actions) == 0
 
     def value(self, c):
         """
