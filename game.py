@@ -1,5 +1,6 @@
 import math
 import copy
+import re
 
 
 class Board(object):
@@ -20,6 +21,21 @@ class Board(object):
 
         raise NotImplemented
 
+    def is_legal_action(self, action):
+        """
+        Returns True if the action is allowed
+        to be performed on this board. False otherwise.
+
+        params:
+        action - the action to check
+        """
+
+        legal_actions = self.get_legal_actions()
+        legal_actions = set([hash(act) for act in legal_actions])
+        if hash(action) in legal_actions:
+            return True
+        return False
+
     def is_terminal(self):
         """
         Returns True if the state of the board
@@ -27,6 +43,14 @@ class Board(object):
         """
 
         raise NotImplemented
+
+    def reward_vector(self):
+        """
+        Returns the reward values for this state for each player.
+        """
+
+        raise NotImplemented
+
 
     def __copy__(self):
         raise NotImplemented
@@ -45,8 +69,8 @@ class ConnectFourBoard(Board):
     RED = 'R'
     BLACK = 'B'
     EMPTY = '-'
-    NUM_COLS = 6
-    NUM_ROWS = 7
+    NUM_COLS = 7
+    NUM_ROWS = 6
 
     def __init__(self, state=None, turn=None):
         """
@@ -56,11 +80,13 @@ class ConnectFourBoard(Board):
         """
 
         if state is None:
-            self.state = [[EMPTY for j in xrange(NUM_COLS)] for i in xrange(NUM_ROWS)]
-            self.turn = RED
+            self.state = [[ConnectFourBoard.EMPTY for j in xrange(ConnectFourBoard.NUM_ROWS)] for i in xrange(ConnectFourBoard.NUM_COLS)]
+            self.turn = ConnectFourBoard.RED
         else:
             self.state = state
             self.turn = turn
+
+        self.last_move = None
         
     def get_legal_actions(self):
         actions = set()
@@ -68,14 +94,128 @@ class ConnectFourBoard(Board):
         for col in xrange(len(self.state)):
             column = self.state[col]
             for row in xrange(len(column)):
-                if column[row] == EMPTY:
-                    action.add(ConnectFourAction(self.turn, col, row))
+                if column[row] == ConnectFourBoard.EMPTY:
+                    actions.add(ConnectFourAction(self.turn, col, row))
                     break
 
         return actions
 
     def is_terminal(self):
-        pass
+                
+        # if no move has been played, return False
+        if self.last_move is None:
+            return False
+
+        if self._terminal_by_win():
+            return True
+
+        # if every slot is filled, then we've reached a terminal state
+        for col in xrange(ConnectFourBoard.NUM_COLS):
+            for row in xrange(ConnectFourBoard.NUM_ROWS):
+                if self.state[col][row] == ConnectFourBoard.EMPTY:
+                    return False
+
+        return True
+
+    def _terminal_by_win(self):            
+        col, row = self.last_move
+        color = self.state[col][row]
+
+        # vertical
+        four_in_col = self._check_seq(color, self.state[col])
+        if four_in_col:
+            return True
+        
+        # horizontal
+        min_col = max(0, col-3)
+        max_col = min(ConnectFourBoard.NUM_COLS-1, col+3)
+        four_in_row = self._check_seq(color, [self.state[i][row] for i in xrange(min_col, max_col+1)])
+        if four_in_row:
+            return True
+
+        # up diagonal
+        coor = self.last_move
+        seq = []
+        valid = True
+        while valid:
+            new_col = coor[0] - 1
+            new_row = coor[1] - 1
+            if new_col < 0 or new_row < 0:
+                valid = False
+            else:
+                coor = (new_col, new_row)
+                seq.append(self.state[coor[0]][coor[1]])
+        seq.reverse()
+        seq.append(color)
+        coor = self.last_move
+        valid = True
+        while valid:
+            new_col = coor[0] + 1
+            new_row = coor[1] + 1
+            if new_col >= ConnectFourBoard.NUM_COLS or new_row >= ConnectFourBoard.NUM_ROWS:
+                valid = False
+            else:
+                coor = (new_col, new_row)
+                seq.append(self.state[coor[0]][coor[1]])
+        four_in_up_diag = self._check_seq(color, seq)
+        if four_in_up_diag:
+            return True
+
+        # down diagonal
+        coor = self.last_move
+        seq = []
+        valid = True
+        while valid:
+            new_col = coor[0] - 1
+            new_row = coor[1] + 1
+            if new_col < 0 or new_row >= ConnectFourBoard.NUM_ROWS:
+                valid = False
+            else:
+                coor = (new_col, new_row)
+                seq.append(self.state[coor[0]][coor[1]])
+        seq.reverse()
+        seq.append(color)
+        coor = self.last_move
+        valid = True
+        while valid:
+            new_col = coor[0] + 1
+            new_row = coor[1] - 1
+            if new_col >= ConnectFourBoard.NUM_COLS or new_row < 0:
+                valid = False
+            else:
+                coor = (new_col, new_row)
+                seq.append(self.state[coor[0]][coor[1]])
+        four_in_down_diag = self._check_seq(color, seq)
+        if four_in_down_diag:
+            return True
+        
+        return False
+
+    def _check_seq(self, color, seq):
+        length = len(seq)
+
+        for i in xrange(length-3):
+            four = True
+            for j in xrange(4):
+                if seq[i+j] != color:
+                    four = False
+                    break
+            if four:
+                return True
+
+        return False
+
+    def reward_vector(self):
+        if self._terminal_by_win():
+            col, row = self.last_move
+            color = self.state[col][row]
+        
+            if color == ConnectFourBoard.RED:
+                return (1,-1)
+            else:
+                return (-1,1)
+
+        return (0,0)
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)
@@ -127,10 +267,9 @@ class ConnectFourAction(Action):
         self.col = col
         self.row = row
 
-    def apply(board):
-        legal_actions = board.get_legal_actions()
-        if self not in legal_actions:
-            raise Exception("This action is not allowed!")
+    def apply(self, board):
+        if not board.is_legal_action(self):
+            raise Exception('This action is not allowed! => {}'.format(self))
             
         new_board = copy.copy(board)
         new_board.state[self.col][self.row] = self.color
@@ -140,10 +279,15 @@ class ConnectFourAction(Action):
         else:
             new_board.turn = ConnectFourBoard.RED
 
-        return board
+        new_board.last_move = (self.col, self.row)
+
+        return new_board
 
     def __hash__(self):
         return hash((self.color, self.col, self.row))
+
+    def __repr__(self):
+        return 'ConnectFourAction(color={},col={},row={})'.format(self.color,self.col,self.row)
 
 
 class Player(object):
@@ -154,8 +298,8 @@ class Player(object):
     that run an algorithm.
     """
 
-    def __init__(self):
-        raise NotImplemented
+    def __init__(self, name):
+        self.name = name
 
     def choose_action(self, board):
         """
@@ -184,31 +328,83 @@ class Player(object):
         return new_board
 
 
-class Game(object):
+class ConnectFourHumanPlayer(Player):
     """
-    This classes represents and simulates a game
+    Human player that plays Connect Four.
+    """
+
+    INPUT_RE = re.compile(r'\s*(\d+)\s+(\d+)\s*')
+
+    def choose_action(self, board):
+        action = None
+        
+        while action is None:
+            inp = raw_input("Enter column and row as two whitespace separated integers: ")
+            m = ConnectFourHumanPlayer.INPUT_RE.match(inp)
+
+            if m:
+                col = int(m.group(1))
+                row = int(m.group(2))
+            else:
+                print 'Incorrect format. Syntax: [COLUMN NUMBER] [ROW NUMBER]'
+                continue
+
+            if col >= 0 and col < ConnectFourBoard.NUM_COLS and row >= 0 and row < ConnectFourBoard.NUM_ROWS:
+                action = ConnectFourAction(board.turn, col, row)
+            else:
+                print 'Coordinate out of range: 0 <= COLUMN NUMBER <= {}, 0 <= ROW NUMBER <= {}'.format(ConnectFourBoard.NUM_COLS-1, ConnectFourBoard.NUM_ROWS-1)
+
+        return action
+
+
+class ComputerPlayer(Player):
+    def __init__(self, name, algo):
+        Player.__init__(self, name)
+        self.algo = algo
+
+    def choose_action(self, board):
+        return self.algo(board)
+
+
+class Simulation(object):
+    """
+    This class represents and simulates a game
     between two players.
     """
 
+    PLAYER_ONE = 'P1'
+    PLAYER_TWO = 'P2'
+
     def __init__(self, init_board, player_1, player_2):
+        self.init_board = init_board
+        self.history = []
         self.board = init_board
-        self.player_1 = player_1
-        self.player_2 = player_2
+        self.players = {}
+        self.players[Simulation.PLAYER_ONE] = player_1
+        self.players[Simulation.PLAYER_TWO] = player_2
+        self.cur_player = Simulation.PLAYER_ONE
 
     def run(self):
-        pass
-        #while not board
+        while not self.board.is_terminal():
+            action = self.players[self.cur_player].choose_action(self.board)
+            self.board = self.players[self.cur_player].play_action(action, self.board)
+            self.history.append(action)
+
+            if self.cur_player == Simulation.PLAYER_ONE:
+                self.cur_player = Simulation.PLAYER_TWO
+            else:
+                self.cur_player = Simulation.PLAYER_ONE
 
 
 class Node(object):
-    def __init__(self, action, board, parent=None):
+    def __init__(self, board, action=None, parent=None):
         """
         Create new node in MCTS tree.
 
         params:
-        action - Incoming action that created this node.
-        board - Board state that this node represents.
-        parent - Parent node. Is None for root.
+        board - Board object that this node represents.
+        action - Incoming action that created this node. None for root.
+        parent - Parent node. None for root.
         """
 
         self.action = action
@@ -281,8 +477,8 @@ class Node(object):
         False otherwise.
         """
         
-        possible_actions = self.board.get_legal_actions()
-        taken_actions = set([child.action for child in self.children])
+        possible_actions = set([hash(action) for action in self.board.get_legal_actions()])
+        taken_actions = set([hash(child.action) for child in self.children])
         untaken_actions = possible_actions ^ taken_actions
         
         return len(untaken_actions) == 0
