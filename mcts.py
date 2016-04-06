@@ -1,8 +1,10 @@
-import game.py as game
+import game as game
 import time as time
 import random as random
+from pprint import pprint
+import re
 
-Cp = 0
+Cp = 5
 ###########################################################
 # monte carlo tree search algorithm using UCT heuristic
 # Input: class Board represents the current game board
@@ -12,11 +14,22 @@ Cp = 0
 def uct(board, time_budget):
     # record start time
     start_time = time.time()
-    root = geme.Node(None, board, None)
+    root = game.Node(board, None, None)
+    
+    ########### debug part: print the root board ###########
+    # print 'root game board:'
+    # pprint(root.get_board().state)
+    
+    computer_color = board.turn
     while (time.time() - start_time) < time_budget:
         tree_terminal = treepolicy(root)
-        reward = randomsearch(tree_terminal.get_board())
+        reward = randomsearch(tree_terminal.get_board(), computer_color)
         backup(tree_terminal, reward)
+        
+        ######### debug part: step by step debugging#########
+        # display(root)
+        # start_time = time.time()
+        
     return bestchild(root, 0).get_action()
 
 ###########################################################
@@ -26,7 +39,7 @@ def uct(board, time_budget):
 ##########################################################
 def treepolicy(node):
     while not node.get_board().is_terminal():
-        if not node.fully_expanded():
+        if not node.is_fully_expanded():
             return expand(node)
         else:
             node = bestchild(node, Cp)
@@ -41,18 +54,26 @@ def expand(node):
     # get the current board
     board = node.get_board()
     
-    # find unvisited actions in set
     visited_actions = set([child.get_action() for child in node.get_children()])
     all_actions = board.get_legal_actions()
-    unvisited_actions = all_actions.difference(visited_actions)
+    
+    # get the unvisited_actions by getting difference of all_actions and visited actions
+    unvisited_actions = set([])
+    for all_action in all_actions:
+        not_visited = True
+        for visited_action in visited_actions:
+            if hash(visited_action) == hash(all_action):
+                not_visited = False
+        if not_visited:
+            unvisited_actions.add(all_action)
     
     # random sample an action
-    action = random.sample(unvisited_actions, 1)[0]
+    action = random.choice(list(unvisited_actions))
     
     new_board = action.apply(board)
-    child = Node(action, new_board, node)
+    child = game.Node(new_board, action, node)
     node.children.append(child)
-    return
+    return child
 
 ###########################################################
 # get the best child from this node (using heuristic)
@@ -69,10 +90,32 @@ def bestchild(node, c):
 ###########################################################
 # randomly picking moves to reach the end game
 # Input: a board that want to start randomly picking moves
+#        the color of computer (black or red)
 # Output: the reward when the game terminates
 ###########################################################
-def randomsearch(board)
-    raise NotImplemented
+def randomsearch(board, computer_color):
+    
+    ####### debug part: print out the board request for random search ##########
+    # print 'random search requested board:'
+    # pprint(board.state)
+    
+    while not board.is_terminal():
+        actions = board.get_legal_actions()
+        action = random.choice(list(actions))
+        board = action.apply(board)
+    # (R,B)
+    reward_vector = board.reward_vector()
+    if computer_color == 'R':
+        reward = reward_vector[0]
+    else:
+        reward = reward_vector[1]
+        
+    ######## debug part: print out random search result #########
+    # print 'random search end board:'
+    # pprint(board.state)
+    # print 'computer color:', computer_color, ',reward:', reward
+    
+    return reward
 
 ###########################################################
 # reward update for the tree after one simulation
@@ -82,8 +125,28 @@ def randomsearch(board)
 ###########################################################
 def backup(node, reward):
     while node is not None:
-        visit(node)
-        node.q_value += reward
+        node.visit()
+        node.q = node.q + reward
         node = node.get_parent()
     return
 
+###########################################################
+# debug part: print out the nodes of tree
+# Input: a root node
+# Output: nothing (just printing)
+###########################################################
+def display(node):
+    pprint(treemap(node))
+    INPUT_RE = re.compile(r'\s*(\d+)\s*')
+    inp = raw_input("#################press any button to run next step#################")
+    m = INPUT_RE.match(inp)
+
+def treemap(node):
+    if node.get_children():
+        tree = ['middlenode:', (node.get_board().state, node.num_visits, node.q)]
+        for child in node.get_children():
+            tree.append(treemap(child))
+        return tree
+    else:
+        return ['leafnode:', (node.get_board().state, node.num_visits, node.q)]
+    
