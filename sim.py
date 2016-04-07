@@ -11,7 +11,7 @@ def simulation():
     player_1 = game.ComputerPlayer('random', algo.mcts_algo, time_limit_1)
     player_2 = game.ComputerPlayer('mcts', algo.mcts_algo, time_limit_2)
     sim = game.Simulation(board, player_1, player_2)
-    sim.run(visualize=False)
+    sim.run(visualize=True)
     pprint(sim.board.state)
     print 'Last move: {}'.format(sim.board.last_move)
     print 'Rewards: {}'.format(sim.board.reward_vector())
