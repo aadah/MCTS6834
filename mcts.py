@@ -101,8 +101,6 @@ def default_policy(board):
         action = random.choice(list(actions))
         board = action.apply(board)
 
-    pprint(board.state)
-    print board.reward_vector()
     return board.reward_vector()
         
     ######## debug part: print out random search result #########
