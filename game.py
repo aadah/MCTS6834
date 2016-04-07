@@ -2,6 +2,8 @@ import math
 import copy
 import re
 
+from pprint import pprint
+
 
 class Board(object):
     """
@@ -46,11 +48,26 @@ class Board(object):
 
     def reward_vector(self):
         """
-        Returns the reward values for this state for each player.
+        Returns the reward values for this state for each player
+        as a tuple, with first player reward in 0th position,
+        second player reward in 1st position, and so on.
         """
 
         raise NotImplemented
 
+    def current_player_id(self):
+        """
+        Returns an integer id representing which player is to play next.
+        """
+
+        raise NotImplemented
+
+    def visualize(self):
+        """
+        Visualize the board in some way or another.
+        """
+
+        raise NotImplemented
 
     def __copy__(self):
         raise NotImplemented
@@ -101,11 +118,11 @@ class ConnectFourBoard(Board):
         return actions
 
     def is_terminal(self):
-                
         # if no move has been played, return False
         if self.last_move is None:
             return False
 
+        # if someone has already won, return True
         if self._terminal_by_win():
             return True
 
@@ -216,6 +233,15 @@ class ConnectFourBoard(Board):
                 return (-1,1)
 
         return (0,0)
+
+    def current_player_id(self):
+        if self.turn == ConnectFourBoard.RED:
+            return 0
+        else:
+            return 1
+
+    def visualize(self):
+        pprint(self.state)
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)
@@ -354,52 +380,40 @@ class ConnectFourHumanPlayer(Player):
             else:
                 print 'Coordinate out of range: 0 <= COLUMN NUMBER <= {}, 0 <= ROW NUMBER <= {}'.format(ConnectFourBoard.NUM_COLS-1, ConnectFourBoard.NUM_ROWS-1)
 
+            if not board.is_legal_action(action):
+                print '{} is not a legal action on this board.'.format(action)
+                action = None
+
         return action
 
 
 class ComputerPlayer(Player):
-    def __init__(self, name, algo):
+    """
+    A generic computer player that takes an algorithm
+    as a strategy. If the algorithm is time-limited,
+    as time limit can be supplied.
+    """
+
+    def __init__(self, name, algo, time_limit=None):
         Player.__init__(self, name)
         self.algo = algo
+        self.time_limit = time_limit
 
     def choose_action(self, board):
-        return self.algo(board)
-
-
-class Simulation(object):
-    """
-    This class represents and simulates a game
-    between two players.
-    """
-
-    PLAYER_ONE = 'P1'
-    PLAYER_TWO = 'P2'
-
-    def __init__(self, init_board, player_1, player_2):
-        self.init_board = init_board
-        self.history = []
-        self.board = init_board
-        self.players = {}
-        self.players[Simulation.PLAYER_ONE] = player_1
-        self.players[Simulation.PLAYER_TWO] = player_2
-        self.cur_player = Simulation.PLAYER_ONE
-
-    def run(self):
-        while not self.board.is_terminal():
-            action = self.players[self.cur_player].choose_action(self.board)
-            self.board = self.players[self.cur_player].play_action(action, self.board)
-            self.history.append(action)
-
-            if self.cur_player == Simulation.PLAYER_ONE:
-                self.cur_player = Simulation.PLAYER_TWO
-            else:
-                self.cur_player = Simulation.PLAYER_ONE
+        if self.time_limit:
+            return self.algo(board, self.time_limit)
+        else:
+            return self.algo(board)
 
 
 class Node(object):
+    """
+    A class that represents nodes in the MCTS tree.
+    """
+
     def __init__(self, board, action=None, parent=None):
         """
-        Create new node in MCTS tree.
+        Create new node.
 
         params:
         board - Board object that this node represents.
@@ -407,8 +421,8 @@ class Node(object):
         parent - Parent node. None for root.
         """
 
-        self.action = action
         self.board = board
+        self.action = action
         self.parent = parent
         self.children = [] # children nodes
         self.num_visits = 0 # number of times node has been visited
@@ -456,6 +470,9 @@ class Node(object):
 
         return self.num_visits
 
+    def get_player_id(self):
+        return self.board.current_player_id()
+
     def q_value(self):
         """
         Return the simulation Q value reward.
@@ -495,3 +512,26 @@ class Node(object):
         exploration_value = c * math.sqrt(2 * math.log(self.parent.num_visits) / self.num_visits)
         
         return exploitation_value + exploration_value
+
+
+class Simulation(object):
+    """
+    This class represents and simulates a game
+    between two players.
+    """
+
+    def __init__(self, board, *players):
+        self.init_board = board
+        self.board = board
+        self.players = players
+        self.history = []
+
+    def run(self, visualize=False):
+        while not self.board.is_terminal():
+            if visualize:
+                self.board.visualize()
+            player_id = self.board.current_player_id()
+            player = self.players[player_id]
+            action = player.choose_action(self.board)
+            self.board = player.play_action(action, self.board)
+            self.history.append((player_id, action))

@@ -1,4 +1,5 @@
 import mcts as mcts
+import algo
 import random as random
 import game as game
 from pprint import pprint
@@ -178,5 +179,27 @@ def test_9():
          ['B', 'R', 'B', 'R', 'B', 'B']]
     board = game.ConnectFourBoard(s, 'R')
     print mcts.uct(board, 1.0) 
+
     
-test_0()
+def test_10():
+    # human decide color
+    print "Which color (red or black) do you want to play? Red goes first."
+    human_color = raw_input("Enter 'R' or 'B': ").strip()
+    
+    # human decide difficulty
+    print 'How many seconds will you allow your computer opponent to think? Enter a number (5 is recommended).'
+    time_limt = float(raw_input("computer thinking time: ").strip())
+
+    board = game.ConnectFourBoard()
+    human = game.ConnectFourHumanPlayer('human')
+    computer = game.ComputerPlayer('computer', algo.mcts_algo, time_limt)
+    
+    if human_color == game.ConnectFourBoard.RED:
+        sim = game.Simulation(board, human, computer)
+    else:
+        sim = game.Simulation(board, computer, human)
+
+    sim.run(visualize=True)
+
+    
+test_10()
