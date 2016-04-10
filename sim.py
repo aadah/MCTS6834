@@ -4,11 +4,11 @@ import algo
 from pprint import pprint
 
 def simulation():
-    time_limit_1 = 0.01
+    time_limit_1 = 0.1
     time_limit_2 = 0.1
 
     board = game.ConnectFourBoard()
-    player_1 = game.ComputerPlayer('random', algo.mcts_algo, time_limit_1)
+    player_1 = game.ComputerPlayer('alpha-beta', algo.alpha_beta_algo, time_limit_1)
     player_2 = game.ComputerPlayer('mcts', algo.mcts_algo, time_limit_2)
     sim = game.Simulation(board, player_1, player_2)
     sim.run(visualize=True)
