@@ -83,8 +83,8 @@ class ConnectFourBoard(Board):
     moves, represented as R and B respectively.
     The symbol '-' means no piece is at that coordinate.
     """
-    RED = 'R'
-    BLACK = 'B'
+    RED = 'O'
+    BLACK = 'X'
     EMPTY = '-'
     NUM_COLS = 7
     NUM_ROWS = 6
@@ -241,7 +241,13 @@ class ConnectFourBoard(Board):
             return 1
 
     def visualize(self):
-        pprint(self.state)
+        print
+        for row in xrange(ConnectFourBoard.NUM_ROWS):
+            row = ConnectFourBoard.NUM_ROWS - row - 1
+            line = [self.state[col][row] for col in xrange(ConnectFourBoard.NUM_COLS)]
+            line = ' '.join(line)
+            print '{} '.format(row) + line
+        print '  ' + ' '.join([str(col) for col in xrange(ConnectFourBoard.NUM_COLS)])
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)
