@@ -8,7 +8,7 @@ def simulation():
     time_limit_2 = 1
 
     board = game.ConnectFourBoard()
-    player_1 = game.ComputerPlayer('random', algo.mcts_algo, time_limit_1)
+    player_1 = game.ComputerPlayer('alpha-beta', algo.alpha_beta_algo, time_limit_1)
     player_2 = game.ComputerPlayer('mcts', algo.mcts_algo, time_limit_2)
     player_3 = game.ComputerPlayer('ab', algo.alpha_beta_algo, time_limit_2)
     sim = game.Simulation(board, player_3, player_2)
