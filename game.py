@@ -1,6 +1,8 @@
 import math
 import copy
 import re
+import json
+import random
 
 from pprint import pprint
 
@@ -532,12 +534,30 @@ class Simulation(object):
         self.players = players
         self.history = []
 
-    def run(self, visualize=False):
+    def run(self, visualize=False, json_visualize=False):
+        self.game_id = str(random.randint(0,3133337))
+
         while not self.board.is_terminal():
             if visualize:
                 self.board.visualize()
+            if json_visualize:
+                self.write_visualization_json()
             player_id = self.board.current_player_id()
             player = self.players[player_id]
             action = player.choose_action(self.board)
             self.board = player.play_action(action, self.board)
             self.history.append((player_id, action))
+
+        if json_visualize:
+            self.write_visualization_json()
+
+    def write_visualization_json(self):
+        json_str = json.dumps({
+            "board": self.board.state,
+            "finished": self.board.is_terminal(),
+            "player": self.board.current_player_id(),
+            "gameId": self.game_id
+        })
+        out_file = open("vis/game-state.json", "w")
+        out_file.write(json_str)
+        out_file.close()
