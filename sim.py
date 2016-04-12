@@ -26,7 +26,7 @@ def make_game_vis():
 
 def run_final_test():
     losses = 0
-    for i in xrange(1):
+    for i in xrange(10):
         winner = simulate_game()
         if winner != 0:
             losses += 1
@@ -36,19 +36,22 @@ def run_final_test():
     win()
 
 def win():
-    display_markdown("""
-Stonn sits back in shock, displaying far more emotion than any Vulcan should.
+    display_html("""<div class="alert alert-success">
+    <strong>You win!!</strong>
+    </div>
 
-"Cadet, it looks like your thousands of years in the mud while we Vulcans
-explored the cosmos were not in vain. Congratulations."
+<p>Stonn sits back in shock, displaying far more emotion than any Vulcan should.</p>
 
-The class breaks into applause! Whoops and cheers ring through the air as
+<p>"Cadet, it looks like your thousands of years in the mud while we Vulcans
+explored the cosmos were not in vain. Congratulations."</p>
+
+<p>The class breaks into applause! Whoops and cheers ring through the air as
 Captain James T. Kirk walks into the classroom to personally award you with
-the Kobayashi Maru Award For Excellence In Tactics.
+the Kobayashi Maru Award For Excellence In Tactics.</p>
 
-The unwelcome interruption of your blaring alarm clock brings you back to
+<p>The unwelcome interruption of your blaring alarm clock brings you back to
 reality, where in the year 2200 Earth's Daylight Savings Time was finally
-abolished by the United Federation of Planets.""", raw=True)
+abolished by the United Federation of Planets.</p>""", raw=True)
 
 def lose():
     display_html("""<div class="alert alert-failure">
