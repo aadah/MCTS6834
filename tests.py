@@ -39,8 +39,31 @@ def test_default_policy(default_policy):
         board.visualize()
         raise ex
 
-def test_best_child():
-    pass
+def test_best_child(best_child):
+    board = ConnectFourBoard()
+    actions = list(board.get_legal_actions())
+
+    parent = Node(board)
+    children = [Node(action.apply(board), action, parent) for action in actions]
+    parent.num_visits = len(children)
+
+    for i in xrange(len(children)):
+        child = children[i]
+        child.q = (i+1)**2
+        child.num_visits = i+1
+        parent.add_child(child)
+
+    # the last child will have the best value for c = 0
+    best_correct_0 = parent.get_children()[-1]
+    best_chosen_0 = best_child(parent, 0)
+
+    # the last child will have the best value for c = 5
+    best_correct_5 = parent.get_children()[0]
+    best_chosen_5 = best_child(parent, 5)
+
+    ok_(best_correct_0 is best_chosen_0)
+    ok_(best_correct_5 is best_chosen_5)
+    
 
 def test_expand():
     pass
