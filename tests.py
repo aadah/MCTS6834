@@ -128,8 +128,30 @@ def test_expand():
 def test_tree_policy():
     pass
 
-def test_backup():
-    pass
+def test_backup(backup):
+    depth = 7
+    board = ConnectFourBoard()
+    parent = Node(board)
+    l = [parent]
+    
+    for i in xrange(depth):
+        action = list(parent.get_board().get_legal_actions())[0]
+        action.col = i % 2
+        action.row = i / 2
+        board = action.apply(board)
+        child = Node(board, action, parent)
+        parent.add_child(child)
+        parent = child
+        l.append(parent)
+
+    reward_vector = parent.get_board().reward_vector()
+    backup(parent, reward_vector)
+
+    q = 1
+    while parent is not None:
+        ok_(parent.q == q)
+        parent = parent.get_parent()
+        q = -q
 
 def test_uct():
     pass
