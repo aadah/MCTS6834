@@ -1,7 +1,6 @@
 import IPython
 from game import *
 from nose.tools import assert_equal, ok_
-import mcts as mcts
 
 def test_default_policy(default_policy):
     test_default_policy_simple_win(default_policy)
