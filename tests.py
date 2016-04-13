@@ -120,6 +120,8 @@ def test_best_child(best_child):
 
     ok_(best_correct_0 is best_chosen_0)
     ok_(best_correct_5 is best_chosen_5)
+
+    print_ok()
     
 
 def test_expand():
@@ -200,6 +202,8 @@ def test_backup(backup):
         ok_(parent.q == q)
         parent = parent.get_parent()
         q = -q
+
+    print_ok()
 
 def test_uct():
     pass
