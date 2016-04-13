@@ -231,10 +231,11 @@ def test_backup(backup):
     backup(parent, reward_vector)
 
     q = 1
-    while parent is not None:
+    while parent.get_parent() is not None:
         ok_(parent.q == q)
-        parent = parent.get_parent()
+        ok_(parent.num_visits == 1)
         q = -q
+        parent = parent.get_parent()
 
     print_ok()
 

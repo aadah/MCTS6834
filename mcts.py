@@ -97,6 +97,6 @@ def default_policy(board):
 def backup(node, reward_vector):
     while node.get_parent() is not None:
         node.visit()
-        node.q -= reward_vector[node.get_parent().get_player_id()]
+        node.q += reward_vector[node.get_parent().get_player_id()]
         node = node.get_parent()
     node.visit()
