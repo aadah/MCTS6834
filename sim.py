@@ -6,15 +6,15 @@ from IPython.display import display, display_html, display_markdown, IFrame
 
 from pprint import pprint
 
-def simulate_game():
+def simulate_game(uct):
     make_game_vis()
 
     time_limit_1 = 0.4
     time_limit_2 = 0.4
 
     board = game.ConnectFourBoard()
-    player_1 = game.ComputerPlayer('alpha-beta', algo.alpha_beta_algo, time_limit_1)
-    player_2 = game.ComputerPlayer('mcts', algo.mcts_algo, time_limit_2)
+    player_1 = game.ComputerPlayer('mcts', uct, time_limit_1)
+    player_2 = game.ComputerPlayer('alpha-beta', algo.alpha_beta_algo, time_limit_2)
     sim = game.Simulation(board, player_1, player_2)
     sim.run(json_visualize=True)
     time.sleep(0.3)
@@ -24,11 +24,11 @@ def make_game_vis():
     frame = IFrame('vis/index.html', 490, 216)
     display(frame)
 
-def run_final_test():
+def run_final_test(uct):
     losses = 0
     for i in xrange(10):
-        winner = simulate_game()
-        if winner != 0:
+        loser = simulate_game(uct)
+        if loser == 0:
             losses += 1
             if losses > 1:
                 lose()

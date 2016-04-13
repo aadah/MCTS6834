@@ -23,18 +23,18 @@ function render() {
   if (state.gameId != gameId) {
     return;
   }
-  if (state.player === 0) {
+  if (state.player === 1) {
     playerOne.classList.add('turn');
     playerTwo.classList.remove('turn');
-  } else if (state.player === 1) {
+  } else if (state.player === 0) {
     playerOne.classList.add('turn');
     playerTwo.classList.remove('turn');
   }
   if (state.finished) {
-    if (state.player === 0) {
+    if (state.player === 1) {
       playerOne.classList.add('win');
       playerTwo.classList.add('lose');
-    } else if (state.player === 1) {
+    } else if (state.player === 0) {
       playerOne.classList.add('lose');
       playerTwo.classList.add('win');
     }
