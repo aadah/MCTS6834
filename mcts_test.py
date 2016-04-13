@@ -202,4 +202,4 @@ def test_10():
     sim.run(visualize=True)
 
     
-test_10()
+test_3()

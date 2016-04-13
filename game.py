@@ -85,8 +85,8 @@ class ConnectFourBoard(Board):
     moves, represented as R and B respectively.
     The symbol '-' means no piece is at that coordinate.
     """
-    RED = 'O'
-    BLACK = 'X'
+    RED = 'R'
+    BLACK = 'B'
     EMPTY = '-'
     NUM_COLS = 7
     NUM_ROWS = 6

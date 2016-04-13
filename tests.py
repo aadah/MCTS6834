@@ -1,6 +1,7 @@
 import IPython
 from game import *
 from nose.tools import assert_equal, ok_
+import mcts as mcts
 
 def test_default_policy(default_policy):
     test_default_policy_simple_win(default_policy)
@@ -96,6 +97,42 @@ def test_default_policy_termination(default_policy):
         board.visualize()
         raise ex
 
+def test_expand(expand):
+    spy = Spy()
+    s = [['-', '-', '-', '-', '-', '-'],
+         ['R', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['B', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['R', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-']]
+    board = ConnectFourBoard(s, 'B')
+    actions = []
+    actions.append(ConnectFourAction('B', 0, 0))
+    actions.append(ConnectFourAction('B', 1, 1))
+    actions.append(ConnectFourAction('B', 2, 0))
+    actions.append(ConnectFourAction('B', 3, 1))
+    actions.append(ConnectFourAction('B', 4, 0))
+    actions.append(ConnectFourAction('B', 5, 1))
+    actions.append(ConnectFourAction('B', 6, 0))
+    root = Node(board)
+    children = [Node(action.apply(board), action, root) for action in actions]
+
+    try:
+        for iteration in range(7):
+            new_child = expand(root)
+            in_child = any([hash(child.get_action()) == hash(new_child.get_action()) for child in children])
+            assert_equal(in_child, True)
+            new_children = []
+            for child in children:
+                if hash(child.get_action()) != hash(new_child.get_action()):
+                    new_children.append(child)
+        print_ok()
+    except Exception as ex:
+        print "Exception occured testing expand on board:"
+        board.visualize()
+        raise ex
+
 def test_best_child(best_child):
     board = ConnectFourBoard()
     actions = list(board.get_legal_actions())
@@ -122,10 +159,6 @@ def test_best_child(best_child):
     ok_(best_correct_5 is best_chosen_5)
 
     print_ok()
-    
-
-def test_expand():
-    pass
 
 def test_tree_policy(tree_policy, expand, best_child):
     test_tree_policy_expand_first_node(tree_policy, expand, best_child)
@@ -205,8 +238,58 @@ def test_backup(backup):
 
     print_ok()
 
-def test_uct():
-    pass
+def test_uct(uct):
+    boards = []
+    solutions = []
+    s = [['B', '-', '-', '-', '-', '-'],
+         ['R', 'R', 'R', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['B', 'B', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-']]
+    boards.append(ConnectFourBoard(s, 'B'))
+    solutions.append(ConnectFourAction(color='B',col=1,row=3))
+    
+    s = [['-', '-', '-', '-', '-', '-'],
+         ['R', 'R', 'R', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['B', 'B', 'B', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-']]
+    boards.append(ConnectFourBoard(s, 'B'))
+    solutions.append(ConnectFourAction(color='B',col=3,row=3))
+    
+    s = [['-', '-', '-', '-', '-', '-'],
+         ['B', 'R', '-', '-', '-', '-'],
+         ['R', 'R', '-', '-', '-', '-'],
+         ['B', 'B', 'R', '-', '-', '-'],
+         ['B', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-'],
+         ['-', '-', '-', '-', '-', '-']]
+    boards.append(ConnectFourBoard(s, 'B'))
+    solutions.append(ConnectFourAction(color='B',col=2,row=2))
+    
+    try:
+        test = 0
+        for iteration_test in range(3):
+            correct_count = 0
+            test_pass = False
+            for iteration in range(10):
+                my_action = uct(boards[test], 1.0)
+                print my_action
+                if hash(my_action) == hash(solutions[test]):
+                    correct_count += 1
+            if correct_count >= 9:
+                test_pass = True
+            assert_equal(test_pass, True)
+            test += 1
+        print_ok()
+    except Exception as ex:
+        print "Exception occured testing uct on board:"
+        boards[test].visualize()
+        raise ex
 
 def print_ok():
     """ If execution gets to this point, print out a happy message """
