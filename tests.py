@@ -125,8 +125,56 @@ def test_best_child(best_child):
 def test_expand():
     pass
 
-def test_tree_policy():
-    pass
+def test_tree_policy(tree_policy, expand, best_child):
+    test_tree_policy_expand_first_node(tree_policy, expand, best_child)
+    test_tree_policy_select_best_child(tree_policy, expand, best_child)
+    test_tree_policy_terminate(tree_policy, expand, best_child)
+    print_ok()
+
+def test_tree_policy_expand_first_node(tree_policy, expand, best_child):
+    board = ConnectFourBoard()
+    parent_node = Node(board)
+    start_len = len(parent_node.children)
+    expanded_node = tree_policy(parent_node, 3)
+    expanded_len = len(parent_node.children)
+    assert_equal(expanded_node.parent, parent_node)
+    assert_equal(start_len + 1, expanded_len)
+    assert_equal(expanded_node.num_visits, 0)
+
+def test_tree_policy_select_best_child(tree_policy, expand, best_child):
+    board = ConnectFourBoard()
+    c = 3
+    parent_node = Node(board)
+    expand_completely(expand, parent_node)
+    start_len = len(parent_node.children)
+    best_node = tree_policy(parent_node, c)
+    unexpanded_len = len(parent_node.children)
+    assert_equal(best_node.parent.parent, parent_node) # It's on the next level
+    assert_equal(start_len, unexpanded_len)
+    assert_equal(best_child(parent_node, c), best_node.parent)
+
+def test_tree_policy_terminate(tree_policy, expand, best_child):
+    board = ConnectFourBoard()
+    c = 3
+    parent_node = Node(board)
+    expand_completely(expand, parent_node)
+    for child in parent_node.children:
+        child.board.state = make_tied_state()
+
+    some_child_node = tree_policy(parent_node, c)
+    assert_equal(some_child_node.parent, parent_node)
+    ok_(some_child_node.board.is_terminal())
+
+# Fully expands or fails if expand doesn't work
+def expand_completely(expand, node):
+    iters = 0
+    while not node.is_fully_expanded():
+        node.visit()
+        new_node = expand(node)
+        new_node.visit()
+        iters += 1
+        if iters > 20:
+            raise Exception("expand(node) should fully expand node within 6 iterations (number of available moves on board)")
 
 def test_backup(backup):
     depth = 7
