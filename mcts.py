@@ -1,8 +1,5 @@
 import time
 import random
-import re
-from pprint import pprint
-
 from game import *
 
 ###########################################################
@@ -17,18 +14,10 @@ def uct(board, time_limit):
     root = Node(board, None, None)
     c = 5
     
-    ########### debug part: print the root board ###########
-    # print 'root game board:'
-    # pprint(root.get_board().state)
-    
     while (time.time() - start_time) < time_limit:
         tree_terminal = tree_policy(root, c)
         reward_vector = default_policy(tree_terminal.get_board())
         backup(tree_terminal, reward_vector)
-        
-        ######### debug part: step by step debugging#########
-        # display(root)
-        # start_time = time.time()
         
     return best_child(root, 0).get_action()
 
@@ -92,22 +81,12 @@ def best_child(node, c):
 # Output: the reward vector when the game terminates
 ###########################################################
 def default_policy(board):
-    
-    ####### debug part: print out the board request for random search ##########
-    # print 'random search requested board:'
-    # pprint(board.state)
     while not board.is_terminal():
         actions = board.get_legal_actions()
         action = random.choice(list(actions))
         board = action.apply(board)
 
     return board.reward_vector()
-        
-    ######## debug part: print out random search result #########
-    # print 'random search end board:'
-    # pprint(board.state)
-    # print 'computer color:', computer_color, ',reward:', reward
-
 
 ###########################################################
 # reward update for the tree after one simulation
@@ -116,27 +95,8 @@ def default_policy(board):
 # Output: nothing
 ###########################################################
 def backup(node, reward_vector):
-    while node is not None:
+    while node.get_parent() is not None:
         node.visit()
-        node.q -= reward_vector[node.get_player_id()]
+        node.q -= reward_vector[node.get_parent().get_player_id()]
         node = node.get_parent()
-
-###########################################################
-# debug part: print out the nodes of tree
-# Input: a root node
-# Output: nothing (just printing)
-###########################################################
-def display(node):
-    pprint(treemap(node))
-    INPUT_RE = re.compile(r'\s*(\d+)\s*')
-    inp = raw_input("#################press any button to run next step#################")
-    m = INPUT_RE.match(inp)
-
-def treemap(node):
-    if node.get_children():
-        tree = ['middlenode:', (node.get_board().state, node.num_visits, node.q)]
-        for child in node.get_children():
-            tree.append(treemap(child))
-        return tree
-    else:
-        return ['leafnode:', (node.get_board().state, node.num_visits, node.q)]
+    node.visit()
