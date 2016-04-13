@@ -16,13 +16,13 @@ def test_default_policy(default_policy):
         reward = default_policy(board)
         assert_equal(reward, (1, -1))
 
-        application = spy.applied[-1]
+        application = spy.applications[-1]
 
         action = application[0]
         start_board = application[1]
         end_board = application[2]
 
-        assert_equal(action.turn, 0)
+        assert_equal(action.color, ConnectFourBoard.RED)
         assert_equal(action.col, 4)
         assert_equal(action.row, 5)
 
