@@ -1,6 +1,5 @@
 import math
 import copy
-import re
 import json
 import random
 
@@ -362,26 +361,29 @@ class Player(object):
         return new_board
 
 
-class ConnectFourHumanPlayer(Player):
+class HumanPlayer(Player):
+    """
+    A generic human player that takes
+    a source function that returns some
+    representation of the human's
+    action.
+    """
+
+    def __init__(self, name, source):
+        Player.__init__(self, name)
+        self.source = source
+
+
+class ConnectFourHumanPlayer(HumanPlayer):
     """
     Human player that plays Connect Four.
     """
-
-    INPUT_RE = re.compile(r'\s*(\d+)\s+(\d+)\s*')
 
     def choose_action(self, board):
         action = None
         
         while action is None:
-            inp = raw_input("Enter column and row as two whitespace separated integers: ")
-            m = ConnectFourHumanPlayer.INPUT_RE.match(inp)
-
-            if m:
-                col = int(m.group(1))
-                row = int(m.group(2))
-            else:
-                print 'Incorrect format. Syntax: [COLUMN NUMBER] [ROW NUMBER]'
-                continue
+            col, row = self.source() # example of how input comes from the source
 
             if col >= 0 and col < ConnectFourBoard.NUM_COLS and row >= 0 and row < ConnectFourBoard.NUM_ROWS:
                 action = ConnectFourAction(board.turn, col, row)

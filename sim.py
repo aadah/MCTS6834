@@ -1,13 +1,15 @@
 import game
 import algo
 import time
+import inp
+import mcts
 
 from IPython.display import display, display_html, display_markdown, IFrame
 
 from pprint import pprint
 
 def simulate_game(uct):
-    make_game_vis()
+    #make_game_vis()#
 
     time_limit_1 = 0.4
     time_limit_2 = 0.4
@@ -15,6 +17,7 @@ def simulate_game(uct):
     board = game.ConnectFourBoard()
     player_1 = game.ComputerPlayer('mcts', uct, time_limit_1)
     player_2 = game.ComputerPlayer('alpha-beta', algo.alpha_beta_algo, time_limit_2)
+    player_3 = game.ConnectFourHumanPlayer('me', inp.connect_four_console_source)
     sim = game.Simulation(board, player_1, player_2)
     sim.run(json_visualize=True)
     time.sleep(0.3)
@@ -57,3 +60,5 @@ def lose():
     display_html("""<div class="alert alert-failure">
     <strong>You can only lose once :(</strong>
     </div>""", raw=True)
+
+simulate_game(mcts.uct)
