@@ -8,8 +8,8 @@ class Player(object):
     that run an algorithm.
     """
 
-    def __init__(self, color):
-        self.color = color
+    def __init__(self, name):
+        self.name = name
 
     def choose_action(self, board):
         """
@@ -37,7 +37,6 @@ class Player(object):
 
         return new_board
 
-
 class HumanPlayer(Player):
     """
     A generic human player that takes
@@ -46,12 +45,11 @@ class HumanPlayer(Player):
     action.
     """
 
-    def __init__(self, color, source):
-        Player.__init__(self, color)
+    def __init__(self, name, source):
+        Player.__init__(self, name)
         self.source = source
 
-
-class SnakePlayer(Player):
+class SnakePlayer(game.Player):
     """
     Human player that plays Snake.
     """
