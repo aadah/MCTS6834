@@ -1,55 +1,8 @@
 import game
+from snake_action import *
 
-class Player(object):
-    """
-    This class represents a player.
-    Subclasses can be human agents
-    that takes input, or programs
-    that run an algorithm.
-    """
 
-    def __init__(self, name):
-        self.name = name
-
-    def choose_action(self, board):
-        """
-        Returns an action that the player
-        wishes to perform on the board.
-
-        params:
-        board -  the current board
-        """
-
-        raise NotImplemented
-
-    def play_action(self, action, board):
-        """
-        Player performs an action
-        on a given board.
-        Returns the new board that results from it.
-
-        params:
-        action - the action that the player wishes to perform
-        board - the current board
-        """
-
-        new_board = action.apply(board)
-
-        return new_board
-
-class HumanPlayer(Player):
-    """
-    A generic human player that takes
-    a source function that returns some
-    representation of the human's
-    action.
-    """
-
-    def __init__(self, name, source):
-        Player.__init__(self, name)
-        self.source = source
-
-class SnakePlayer(game.Player):
+class SnakePlayer(game.HumanPlayer):
     """
     Human player that plays Snake.
     """
@@ -59,15 +12,25 @@ class SnakePlayer(game.Player):
         
         #if no move from joystick: go into Board class and get last move 
         while action is None:
-            width, height = self.source() # example of how input comes from the source
+            next_dir = self.source() # returns 0,1,2,3,4, representing the direction the person wants to go
 
-            if width >= 0 and width < SnakeBoard.WIDTH and height >= 0 and height < SnakeBoard.HEIGHT:
-                action = SnakeAction(color, direction)
+            curr_dir = board.get_snake(color)[0] #current direction the snake is going
+            
+            #if human isn't holidng the joystick in any direction
+            if (next_dir == 0):
+                action = SnakeAction(board.turn, curr_dir)
+
+            #if the next direction is oppositive from curr_dir,
+            #new direction is the direction the snake is already going
+            if ((next_dir == 1) && (curr_dir == 3)) or ((next_dir == 3) && (curr_dir == 1)):
+                action = SnakeAction(board.turn, curr_dir)
+            if ((next_dir == 2) && (curr_dir == 4)) or ((next_dir == 4) && (curr_dir == 2)):
+                action = SnakeAction(board.turn, curr_dir)
             else:
-                print 'Coordinate out of range: 0 <= WIDTH <= {}, 0 <= HEIGHT <= {}'.format(ConnectFourBoard.NUM_COLS-1, ConnectFourBoard.NUM_ROWS-1)
-
+                action = SnakeAction(board.turn, next_dir)
+          
             if not board.is_legal_action(action):
-                print '{} is not a legal action on this board.'.format(action)
+                #print '{} is not a legal action on this board.'.format(action)
                 action = None
 
         return action
