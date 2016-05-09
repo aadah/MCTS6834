@@ -130,7 +130,19 @@ class SnakeBoard(game.Board):
         print
         
     def json_visualize(self):
-        return self.get_grid()
+        _, red_snake = self.state[SnakeBoard.RED]
+        _, black_snake = self.state[SnakeBoard.BLACK]
+        grid = self.get_grid()
+
+        grid[red_snake[0][1]][red_snake[0][0]] = '+'
+        grid[black_snake[0][1]][black_snake[0][0]] = 'x'
+        return {
+            "board": grid,
+            "finished": self.is_terminal(),
+            "player": self.current_player_id(),
+            "rDir": self.get_snake(SnakeBoard.RED)[0],
+            "bDir": self.get_snake(SnakeBoard.BLACK)[0]
+        }
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)

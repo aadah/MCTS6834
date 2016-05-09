@@ -254,7 +254,11 @@ class ConnectFourBoard(Board):
         print '  ' + ' '.join([str(col) for col in xrange(ConnectFourBoard.NUM_COLS)])
 
     def json_visualize(self):
-        return self.state
+        return {
+            "board": self.state,
+            "finished": self.is_terminal(),
+            "player": self.current_player_id(),
+        }
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)
@@ -560,12 +564,9 @@ class Simulation(object):
             self.write_visualization_json()
 
     def write_visualization_json(self):
-        json_str = json.dumps({
-            "board": self.board.json_visualize(),
-            "finished": self.board.is_terminal(),
-            "player": self.board.current_player_id(),
-            "gameId": self.game_id
-        })
+        data = self.board.json_visualize()
+        data["gameId"] = self.game_id
+        json_str = json.dumps(data)
         out_file = open("vis/game-state.json", "w")
         out_file.write(json_str)
         out_file.close()
