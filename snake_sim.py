@@ -9,7 +9,7 @@ def simulate_game(uct):
     player_1 = game.ComputerPlayer('mcts_1', uct, time_limit_1)
     player_2 = game.ComputerPlayer('mcts_2', uct, time_limit_2)
     sim = game.Simulation(board, player_1, player_2)
-    sim.run(visualize=True)
+    sim.run(visualize=True, json_visualize=True)
 
     return sim.board.current_player_id()
 

@@ -1,63 +1,67 @@
-var mapText = '0 0 0 0 0 0 0 0\n'
-              + '0 0 1 0 0 0 0 0\n'
-              + '0 0 1 0 0 0 0 0\n'
-              + '0 0 1 0 0 0 0 0\n'
-              + '0 0 1 2 2 2 2 0\n'
-              + '0 0 1 0 0 0 0 0\n'
-              + '0 0 1 0 0 0 0 0\n'
-              + '0 0 0 0 0 0 0 0'
-
-var map = mapText.split('\n').map(function(line) {
-  return line.split(' ').filter(function(token) {
-    return token.length > 0;
-  });
-});
-
+var gameId, state = {board: [[]]};
 var canvas = document.getElementById('game');
-canvas.width = map.length * 16;
-canvas.height = map.length * 16;
+canvas.width = 640;
+canvas.height = 640 * 25 / 40;
 var gfx = canvas.getContext('2d');
+
+function update() {
+  if (!gameId) {
+    gameId = state.gameId;
+  }
+  if (state.gameId != gameId) {
+    return;
+  }
+}
 
 function draw() {
   gfx.fillStyle = 'rgba(0, 0, 0, 0.2)';
   gfx.fillRect(0, 0, canvas.width, canvas.height);
 
+  var map = state.board;
+
   for (var row = 0; row < map.length; row++) {
     for (var col = 0; col < map[row].length; col++) {
       var token = map[row][col];
-      if (token === '0') {
+      if (token === ' ') {
         continue;
       }
 
-      if (token === '1') {
+      if (token === 'R') {
         gfx.fillStyle = '#0035FF'
       }
-      if (token === '2') {
+      if (token === 'B') {
         gfx.fillStyle = '#FF3900';
       }
-      if (token === '3') {
+      if (token === '@') {
         gfx.fillStyle = '#68CC00';
       }
 
-      var cellWidth = canvas.width / map.length;
-      var cellHeight = canvas.height / map[row].length;
-      var x = col * cellHeight;
-      var y = row * cellWidth;
+      var cellWidth = canvas.width / map[row].length;
+      var cellHeight = canvas.height / map.length;
+      var x = col * cellWidth;
+      var y = row * cellHeight;
       gfx.fillRect(x, y, cellWidth, cellHeight);
-    }
-  }
-  if (Math.random() < 33 / 250) {
-    var foodRow = Math.floor(Math.random() * map.length);
-    var foodCol = Math.floor(Math.random() * map.length);
-    var prev = map[foodRow][foodCol];
-    if (prev !== '3') {
-      map[foodRow][foodCol] = '3';
-      setTimeout(function() {
-        map[foodRow][foodCol] = prev;
-      }, 250);
     }
   }
   window.requestAnimationFrame(draw);
 }
 
-draw()
+function pullState() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '../vis/game-state.json', true);
+  xhr.overrideMimeType('text/plain');
+  xhr.onload = function() {
+    window.requestAnimationFrame(pullState);
+    var newState = JSON.parse(xhr.responseText);
+    // Hacky deduplication
+    if (JSON.stringify(state) === JSON.stringify(newState)) {
+      return;
+    }
+    state = newState;
+    update();
+  };
+  xhr.send();
+}
+
+draw();
+pullState();

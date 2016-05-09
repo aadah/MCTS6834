@@ -70,6 +70,9 @@ class Board(object):
 
         raise NotImplemented
 
+    def json_visualize(self):
+        raise NotImplemented
+
     def __copy__(self):
         raise NotImplemented
 
@@ -249,6 +252,9 @@ class ConnectFourBoard(Board):
             line = ' '.join(line)
             print '{} '.format(row) + line
         print '  ' + ' '.join([str(col) for col in xrange(ConnectFourBoard.NUM_COLS)])
+
+    def json_visualize(self):
+        return self.state
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)
@@ -555,7 +561,7 @@ class Simulation(object):
 
     def write_visualization_json(self):
         json_str = json.dumps({
-            "board": self.board.state,
+            "board": self.board.json_visualize(),
             "finished": self.board.is_terminal(),
             "player": self.board.current_player_id(),
             "gameId": self.game_id

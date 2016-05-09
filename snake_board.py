@@ -88,7 +88,8 @@ class SnakeBoard(game.Board):
         else:
             return 1
 
-    def visualize(self):
+
+    def get_grid(self):
         grid = [[" " for j in xrange(self.state['width'])] for i in xrange(self.state['height'])]
         for item in self.state['food']:
             grid[item[1]][item[0]] = '@'
@@ -104,6 +105,13 @@ class SnakeBoard(game.Board):
             x, y = coor
             grid[y][x] = SnakeBoard.BLACK
 
+        return grid
+
+    def visualize(self):
+        _, red_snake = self.state[SnakeBoard.RED]
+        _, black_snake = self.state[SnakeBoard.BLACK]
+
+        grid = self.get_grid()
         grid[red_snake[0][1]][red_snake[0][0]] = '+'
         grid[black_snake[0][1]][black_snake[0][0]] = 'x'
 
@@ -116,6 +124,8 @@ class SnakeBoard(game.Board):
 
         print
         
+    def json_visualize(self):
+        return self.get_grid()
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)
