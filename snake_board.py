@@ -10,7 +10,7 @@ class SnakeBoard(game.Board):
     BLACK = 'B'
     WIDTH = 40#80
     HEIGHT = 25#50
-    NUM_FOOD_ITEMS = 10
+    NUM_FOOD_ITEMS = 100
 
     def __init__(self, state=None, turn=None):
         if state == None:
@@ -78,7 +78,7 @@ class SnakeBoard(game.Board):
             else:
                 return (-end_game_val,end_game_val)
 
-        length_scale_factor = 1.0
+        length_scale_factor = 1000.0
         red_length = len(self.state[SnakeBoard.RED][1])
         black_length = len(self.state[SnakeBoard.BLACK][1])
         diff = (red_length - black_length) * length_scale_factor
