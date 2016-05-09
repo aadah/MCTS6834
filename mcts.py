@@ -21,6 +21,21 @@ def uct(board, time_limit):
         
     return best_child(root, 0).get_action()
 
+def uct_fixed_horizon(board, time_limit):
+    # record start time
+    start_time = time.time()
+    root = Node(board, None, None)
+    c = 10
+    horizon = 10
+    
+    while time.time() - start_time < time_limit:
+        tree_terminal = tree_policy(root, c)
+        reward_vector = default_policy_fixed_horizon(tree_terminal.get_board(), horizon)
+        #print reward_vector,
+        backup(tree_terminal, reward_vector)
+        
+    return best_child(root, 0).get_action()
+
 def uct_timed(board, time_limit):
     # record start time
     start_time = time.time()
@@ -98,6 +113,16 @@ def default_policy(board):
         actions = board.get_legal_actions()
         action = random.choice(list(actions))
         board = action.apply(board)
+
+    return board.reward_vector()
+
+def default_policy_fixed_horizon(board, horizon):
+    i = 0
+    while (not board.is_terminal()) and i < horizon:
+        actions = board.get_legal_actions()
+        action = random.choice(list(actions))
+        board = action.apply(board)
+        i += 1
 
     return board.reward_vector()
 

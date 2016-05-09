@@ -78,12 +78,14 @@ class SnakeBoard(game.Board):
             else:
                 return (-end_game_val,end_game_val)
 
-        length_scale_factor = 10.0
+        length_scale_factor = 1.0
         red_length = len(self.state[SnakeBoard.RED][1])
         black_length = len(self.state[SnakeBoard.BLACK][1])
         diff = (red_length - black_length) * length_scale_factor
 
-        return (diff, -diff)
+        #return (diff, -diff)
+        return (red_length * length_scale_factor,
+                black_length * length_scale_factor)
 
     def current_player_id(self):
         if self.turn == SnakeBoard.RED:

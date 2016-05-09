@@ -17,4 +17,4 @@ def simulate_game(uct):
 
     return sim.board.current_player_id()
 
-simulate_game(mcts.uct_timed)
+simulate_game(mcts.uct_fixed_horizon)
