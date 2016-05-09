@@ -10,7 +10,7 @@ class SnakeBoard(game.Board):
     BLACK = 'B'
     WIDTH = 40#80
     HEIGHT = 25#50
-    NUM_FOOD_ITEMS = 2
+    NUM_FOOD_ITEMS = 10
 
     def __init__(self, state=None, turn=None):
         if state == None:
@@ -70,17 +70,20 @@ class SnakeBoard(game.Board):
         return coor in illegal_positions or self._is_border_collision(coor)
 
     def reward_vector(self):
-        length_scale_factor = 1000.0
-
         if self.is_terminal():
             end_game_val = 1000000.0
+
             if self.turn == SnakeBoard.RED:
                 return (end_game_val,-end_game_val)
             else:
                 return (-end_game_val,end_game_val)
 
-        return (len(self.state[SnakeBoard.RED][1]) * length_scale_factor,
-                len(self.state[SnakeBoard.BLACK][1]) * length_scale_factor)
+        length_scale_factor = 10.0
+        red_length = len(self.state[SnakeBoard.RED][1])
+        black_length = len(self.state[SnakeBoard.BLACK][1])
+        diff = (red_length - black_length) * length_scale_factor
+
+        return (diff, -diff)
 
     def current_player_id(self):
         if self.turn == SnakeBoard.RED:

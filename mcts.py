@@ -12,11 +12,24 @@ def uct(board, time_limit):
     # record start time
     start_time = time.time()
     root = Node(board, None, None)
-    c = 5
+    c = 1
     
-    while (time.time() - start_time) < time_limit:
+    while time.time() - start_time < time_limit:
         tree_terminal = tree_policy(root, c)
         reward_vector = default_policy(tree_terminal.get_board())
+        backup(tree_terminal, reward_vector)
+        
+    return best_child(root, 0).get_action()
+
+def uct_timed(board, time_limit):
+    # record start time
+    start_time = time.time()
+    root = Node(board, None, None)
+    c = 100
+    
+    while time.time() - start_time < time_limit:
+        tree_terminal = tree_policy(root, c)
+        reward_vector = default_policy_timed(tree_terminal.get_board(), time_limit-(time.time()-start_time))
         backup(tree_terminal, reward_vector)
         
     return best_child(root, 0).get_action()
@@ -81,6 +94,14 @@ def best_child(node, c):
 # Output: the reward vector when the game terminates
 ###########################################################
 def default_policy(board):
+    while not board.is_terminal():
+        actions = board.get_legal_actions()
+        action = random.choice(list(actions))
+        board = action.apply(board)
+
+    return board.reward_vector()
+
+def default_policy_timed(board, time_limit):
     while not board.is_terminal():
         actions = board.get_legal_actions()
         action = random.choice(list(actions))

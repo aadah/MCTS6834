@@ -66,6 +66,7 @@ class SnakeAction(game.Action):
             food.discard(new_snake_head)
             new_food_item = (random.randint(0, new_board.state['width']-1),
                              random.randint(0, new_board.state['height']-1))
+
             food.add(new_food_item)
 
         # update board with new snake coordinates and direction

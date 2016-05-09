@@ -1,4 +1,6 @@
 import re
+import random
+import time
 
 
 def connect_four_console_source():
@@ -16,3 +18,10 @@ def connect_four_console_source():
             print 'Incorrect format. Syntax: [COLUMN NUMBER] [ROW NUMBER]'
         
     return (col, row)
+
+def snake_random_source(time_limit):
+    def f():
+        time.sleep(time_limit)
+        return random.choice([0,1,2,3,4])
+
+    return f
