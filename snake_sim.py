@@ -13,7 +13,7 @@ def simulate_game(uct):
     player_2 = game.ComputerPlayer('mcts_2', uct, time_limit_2)
     player_3 = snake_player.SnakePlayer('human', inp.snake_random_source(time_limit_3))
     sim = game.Simulation(board, player_1, player_2)
-    sim.run(visualize=True)
+    sim.run(visualize=True, json_visualize=True)
 
     return sim.board.current_player_id()
 
