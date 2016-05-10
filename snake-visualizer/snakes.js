@@ -34,20 +34,24 @@ function drawSnake(snake, dir, color) {
     var y = cy(snake[i]);
     gfx.fillRect(x, y, cellSize, cellSize);
   }
-  drawSnakeHead(snake, dir, color);
-  drawSnakeTail(snake, dir, color);
+  drawSnakeHead(snake, color);
+  drawSnakeTail(snake, color);
 }
 
 function getDirAngle(dir) {
+  // Left
   if (dir === 1) {
     return Math.PI;
   }
+  // Up
   if (dir === 2) {
     return 3 * Math.PI / 2;
   }
+  // Right
   if (dir === 3) {
     return 0;
   }
+  // Down
   if (dir === 4) {
     return Math.PI / 2;
   }
@@ -87,11 +91,12 @@ function drawSnakeCap(x, y, dir, color) {
   gfx.fillRect(capX, capY, capWidth, capHeight);
 }
 
-function drawSnakeHead(snake, dir, color) {
+function drawSnakeHead(snake, color) {
   var x = cx(snake[0]);
   var y = cy(snake[0]);
   var centerX = x + cellSize / 2;
   var centerY = y + cellSize / 2;
+  var dir = getDir(snake[0], snake[1]);
   var dirAngle = getDirAngle(dir);
   drawSnakeCap(x, y, dir, color);
 
@@ -117,28 +122,33 @@ function drawSnakeHead(snake, dir, color) {
   gfx.restore();
 }
 
-function drawSnakeTail(snake, color) {
-  var tailX = cx(snake[snake.length - 1]);
-  var tailY = cy(snake[snake.length - 1]);
-  var preTailX = cx(snake[snake.length - 2]);
-  var preTailY = cy(snake[snake.length - 2]);
+function getDir(cellA, cellB) {
+  var tailX = cx(cellA);
+  var tailY = cy(cellA);
+  var preTailX = cx(cellB);
+  var preTailY = cy(cellB);
 
   var diffX = tailX - preTailX;
   var diffY = tailY - preTailY;
-  var dir = 0;
   if (Math.abs(diffX) > Math.abs(diffY)) {
     if (diffX > 0) {
-      dir = 3;
+      return 3;
     } else {
-      dir = 1;
+      return 1;
     }
   } else {
     if (diffY > 0) {
-      dir = 4;
+      return 4;
     } else {
-      dir = 2;
+      return 2;
     }
   }
+}
+
+function drawSnakeTail(snake, color) {
+  var tailX = cx(snake[snake.length - 1]);
+  var tailY = cy(snake[snake.length - 1]);
+  var dir = getDir(snake[snake.length - 1], snake[snake.length - 2]);
   drawSnakeCap(tailX, tailY, dir, color);
 }
 
