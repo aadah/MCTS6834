@@ -25,8 +25,8 @@ def uct_fixed_horizon(board, time_limit):
     # record start time
     start_time = time.time()
     root = Node(board, None, None)
-    c = 10
-    horizon = 10
+    c = 50
+    horizon = 25
     
     while time.time() - start_time < time_limit:
         tree_terminal = tree_policy(root, c)
