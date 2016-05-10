@@ -13,6 +13,9 @@ function pullState() {
     var newState = JSON.parse(xhr.responseText);
     self.postMessage(newState);
   };
+  xhr.onerror = function() {
+    setTimeout(pullState, 50);
+  };
   xhr.send();
 }
 
