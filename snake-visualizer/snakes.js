@@ -1,67 +1,167 @@
-var gameId, state = {board: [[]]};
+var state = {};
 var canvas = document.getElementById('game');
-canvas.width = 640;
-canvas.height = 640 * 25 / 40;
+var cellSize = 28;
+canvas.width = cellSize * 40;
+canvas.height = cellSize * 25;
 var gfx = canvas.getContext('2d');
+var worker = new Worker('snorker.js');
+worker.onmessage = function(message) {
+  state = message.data;
+};
 
-function update() {
-  if (!gameId) {
-    gameId = state.gameId;
-  }
-  if (state.gameId != gameId) {
-    return;
+
+function cx(cell) {
+  return cell[0] * cellSize;
+}
+function cy(cell) {
+  return (24 - cell[1]) * cellSize;
+}
+
+function drawFood(food) {
+  gfx.fillStyle = '#68CC00';
+  for (var i = 0; i < food.length; i++) {
+    var x = cx(food[i]);
+    var y = cy(food[i]);
+    gfx.fillRect(x, y, cellSize, cellSize);
   }
 }
 
-function draw() {
-  gfx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-  gfx.fillRect(0, 0, canvas.width, canvas.height);
 
-  var map = state.board;
+function drawSnake(snake, dir, color) {
+  gfx.fillStyle = color;
+  for (var i = 1; i < snake.length - 1; i++) {
+    var x = cx(snake[i]);
+    var y = cy(snake[i]);
+    gfx.fillRect(x, y, cellSize, cellSize);
+  }
+  drawSnakeHead(snake, dir, color);
+  drawSnakeTail(snake, dir, color);
+}
 
-  for (var row = 0; row < map.length; row++) {
-    for (var col = 0; col < map[row].length; col++) {
-      var token = map[row][col];
-      if (token === ' ') {
-        continue;
-      }
+function getDirAngle(dir) {
+  if (dir === 1) {
+    return Math.PI;
+  }
+  if (dir === 2) {
+    return 3 * Math.PI / 2;
+  }
+  if (dir === 3) {
+    return 0;
+  }
+  if (dir === 4) {
+    return Math.PI / 2;
+  }
+  throw new Error('Unrecognized dir: ' + dir);
+}
 
-      if (token === 'R') {
-        gfx.fillStyle = '#0035FF'
-      }
-      if (token === 'B') {
-        gfx.fillStyle = '#FF3900';
-      }
-      if (token === '@') {
-        gfx.fillStyle = '#68CC00';
-      }
 
-      var cellWidth = canvas.width / map[row].length;
-      var cellHeight = canvas.height / map.length;
-      var x = col * cellWidth;
-      var y = row * cellHeight;
-      gfx.fillRect(x, y, cellWidth, cellHeight);
+function drawSnakeCap(x, y, dir, color) {
+  var capX = x;
+  var capY = y;
+  var centerX = x + cellSize / 2;
+  var centerY = y + cellSize / 2;
+  var capWidth = cellSize;
+  var capHeight = cellSize;
+  var dirAngle = getDirAngle(dir);
+  if (dir === 1 || dir === 3) {
+    capWidth /= 2;
+  }
+  if (dir === 2 || dir === 4) {
+    capHeight /= 2;
+  }
+  if (dir === 1) {
+    capX = centerX;
+  }
+  if (dir === 2) {
+    capY = centerY;
+  }
+
+  var startAngle = dirAngle - Math.PI / 2;
+  var endAngle = dirAngle + Math.PI / 2;
+
+  gfx.fillStyle = color;
+  gfx.beginPath()
+  gfx.arc(centerX, centerY, cellSize / 2, startAngle, endAngle);
+  gfx.closePath();
+  gfx.fill();
+  gfx.fillRect(capX, capY, capWidth, capHeight);
+}
+
+function drawSnakeHead(snake, dir, color) {
+  var x = cx(snake[0]);
+  var y = cy(snake[0]);
+  var centerX = x + cellSize / 2;
+  var centerY = y + cellSize / 2;
+  var dirAngle = getDirAngle(dir);
+  drawSnakeCap(x, y, dir, color);
+
+  gfx.save();
+  gfx.fillStyle = 'white';
+  gfx.translate(centerX, centerY);
+  gfx.rotate(dirAngle);
+
+  gfx.beginPath();
+  gfx.arc(cellSize * 0.2, -cellSize * 0.2, cellSize * 0.17, 0, 2 * Math.PI);
+  gfx.fill();
+  gfx.beginPath();
+  gfx.arc(cellSize * 0.2, cellSize * 0.2, cellSize * 0.17, 0, 2 * Math.PI);
+  gfx.fill();
+
+  gfx.fillStyle = 'black';
+  gfx.beginPath();
+  gfx.arc(0.23 * cellSize, -0.2 * cellSize, cellSize * 0.1, 0, 2 * Math.PI);
+  gfx.fill();
+  gfx.beginPath();
+  gfx.arc(0.23 * cellSize, 0.2 * cellSize, cellSize * 0.1, 0, 2 * Math.PI);
+  gfx.fill();
+  gfx.restore();
+}
+
+function drawSnakeTail(snake, color) {
+  var tailX = cx(snake[snake.length - 1]);
+  var tailY = cy(snake[snake.length - 1]);
+  var preTailX = cx(snake[snake.length - 2]);
+  var preTailY = cy(snake[snake.length - 2]);
+
+  var diffX = tailX - preTailX;
+  var diffY = tailY - preTailY;
+  var dir = 0;
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    if (diffX > 0) {
+      dir = 3;
+    } else {
+      dir = 1;
+    }
+  } else {
+    if (diffY > 0) {
+      dir = 4;
+    } else {
+      dir = 2;
     }
   }
+  drawSnakeCap(tailX, tailY, dir, color);
+}
+
+
+function draw() {
+  gfx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+  gfx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (state.gameId) {
+    var redSnake = state.redSnake;
+    var blackSnake = state.blackSnake;
+
+    // for (var row = 0; row < map.length; row++) {
+    // }
+    // for (var col = 0; col < map[row].length; col++) {
+    // }
+    drawFood(state.food);
+    drawSnake(state.redSnake, state.redDir, '#FF3900');
+    drawSnake(state.blackSnake, state.blackDir, '#0035FF');
+  }
+
+
   window.requestAnimationFrame(draw);
 }
 
-function pullState() {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', '../vis/game-state.json', true);
-  xhr.overrideMimeType('text/plain');
-  xhr.onload = function() {
-    window.requestAnimationFrame(pullState);
-    var newState = JSON.parse(xhr.responseText);
-    // Hacky deduplication
-    if (JSON.stringify(state) === JSON.stringify(newState)) {
-      return;
-    }
-    state = newState;
-    update();
-  };
-  xhr.send();
-}
-
 draw();
-pullState();

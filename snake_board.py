@@ -130,7 +130,19 @@ class SnakeBoard(game.Board):
         print
         
     def json_visualize(self):
-        return self.get_grid()
+        red_dir, red_snake = self.state[SnakeBoard.RED]
+        black_dir, black_snake = self.state[SnakeBoard.BLACK]
+        food = self.state['food']
+
+        return {
+            "redSnake": list(red_snake),
+            "blackSnake": list(black_snake),
+            "redDir": red_dir,
+            "blackDir": black_dir,
+            "food": list(food),
+            "finished": self.is_terminal(),
+            "player": self.current_player_id()
+        }
 
     def __copy__(self):
         new_state = copy.deepcopy(self.state)
