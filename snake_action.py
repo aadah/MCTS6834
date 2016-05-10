@@ -43,14 +43,14 @@ class SnakeAction(game.Action):
         old_snake_head = old_snake_coords[0]
 
         # Calculate position of the snake head
-        if self.direction == 1: # move left
-            new_snake_head = (old_snake_head[0] - 1, old_snake_head[1])
-        elif self.direction == 2:# move up
+        if self.direction == 1: # move up
             new_snake_head = (old_snake_head[0], old_snake_head[1] + 1)
-        elif self.direction == 3: # move right
+        elif self.direction == 2:# move right
             new_snake_head = (old_snake_head[0] + 1, old_snake_head[1])
-        else: # move down
+        elif self.direction == 3: # move down
             new_snake_head = (old_snake_head[0], old_snake_head[1] - 1)
+        else: # move left
+            new_snake_head = (old_snake_head[0] - 1, old_snake_head[1])
 
         # Create new snake
         new_snake_coords = [new_snake_head]

@@ -18,3 +18,8 @@ def simulate_game(uct):
     return sim.board.current_player_id()
 
 simulate_game(mcts.uct_fixed_horizon)
+
+# up 1
+# right 2
+# down 3
+# left 4
