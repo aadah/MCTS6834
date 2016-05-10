@@ -10,15 +10,15 @@ class SnakeBoard(game.Board):
     BLACK = 'B'
     WIDTH = 40#80
     HEIGHT = 25#50
-    NUM_FOOD_ITEMS = 100
+    NUM_FOOD_ITEMS = 5
 
     def __init__(self, state=None, turn=None):
         if state == None:
             state = {}
-            red_snake = (3, [(3,1),
+            red_snake = (4, [(3,1),
                              (2,1),
                              (1,1)])
-            black_snake = (1, [(SnakeBoard.WIDTH-4,SnakeBoard.HEIGHT-2),
+            black_snake = (2, [(SnakeBoard.WIDTH-4,SnakeBoard.HEIGHT-2),
                                (SnakeBoard.WIDTH-3,SnakeBoard.HEIGHT-2),
                                (SnakeBoard.WIDTH-2,SnakeBoard.HEIGHT-2)])
             food = set([(random.randint(0, SnakeBoard.WIDTH-1),
@@ -69,23 +69,41 @@ class SnakeBoard(game.Board):
         
         return coor in illegal_positions or self._is_border_collision(coor)
 
+    def manhattan_dist(self, coor1, coor2):
+        x1, y1 = coor1
+        x2, y2 = coor2
+
+        return abs(x1-x2) + abs(y1-y2)
+
+    def closest_food_item_dist(self, color):
+        _, snake = self.state[color]
+        head = snake[0]
+
+        return min([self.manhattan_dist(head, item) for item in self.state['food']])
+
     def reward_vector(self):
         if self.is_terminal():
-            end_game_val = 1000000.0
+            end_game_val = 1.0
 
             if self.turn == SnakeBoard.RED:
                 return (end_game_val,-end_game_val)
             else:
                 return (-end_game_val,end_game_val)
 
-        length_scale_factor = 1000.0
+        length_scale_factor = 1.0
         red_length = len(self.state[SnakeBoard.RED][1])
         black_length = len(self.state[SnakeBoard.BLACK][1])
-        diff = (red_length - black_length) * length_scale_factor
 
+        
+
+        #diff = (red_length - black_length) * length_scale_factor
         #return (diff, -diff)
+        
         return (red_length * length_scale_factor,
                 black_length * length_scale_factor)
+        
+        #return (red_length * length_scale_factor / self.closest_food_item_dist(SnakeBoard.RED),
+        #        black_length * length_scale_factor / self.closest_food_item_dist(SnakeBoard.BLACK))
 
     def current_player_id(self):
         if self.turn == SnakeBoard.RED:
